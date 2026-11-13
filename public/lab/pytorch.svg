@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" width="960" height="720">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="47%" r="58%"><stop offset="0" stop-color="#fff" stop-opacity=".13"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient>
+  <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1.1" fill="#fff" fill-opacity=".07"/></pattern>
+  <filter id="knock"><feColorMatrix type="matrix" values="-1 0 0 0 0.95  0 -1 0 0 0.95  0 0 -1 0 0.93  0 0 0 1 0"/></filter>
+</defs>
+<rect width="960" height="720" fill="#3a140c"/>
+<rect width="960" height="720" fill="url(#dots)"/>
+<rect width="960" height="720" fill="url(#glow)"/>
+<g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" letter-spacing="1.5" fill="#f2f1ee">
+  <text x="48" y="66" fill-opacity=".55">LAB:: N°22</text>
+  <text x="912" y="66" text-anchor="end" fill-opacity=".55">AI</text>
+  <rect x="48" y="88" width="864" height="1.5" fill-opacity=".12"/>
+  <rect x="48" y="630" width="864" height="1.5" fill-opacity=".12"/>
+  <text x="912" y="676" text-anchor="end" fill-opacity=".55">STACK</text>
+</g>
+<text x="48" y="680" font-family="Helvetica Neue, Arial, sans-serif" font-size="36" font-weight="500" letter-spacing="-.5" fill="#f2f1ee">PyTorch</text>
+<svg x="330" y="190" width="300" height="300" viewBox="0 0 128 128"><g><path fill="#EE4C2C" d="M100.1 38.3l-9.2 9.2c15.1 15.1 15.1 39.4 0 54.3-15.1 15.1-39.4 15.1-54.3 0-15.1-15.1-15.1-39.4 0-54.3l24-24 3.4-3.4V2L27.8 38.2C7.7 58.3 7.7 90.8 27.8 111s52.6 20.1 72.4 0c20.1-20.2 20.1-52.5-.1-72.7z"/><circle fill="#EE4C2C" transform="rotate(-88.939 82.069 29.398) scale(.99997)" cx="82.1" cy="29.4" r="6.7"/></g></svg>
+</svg>
