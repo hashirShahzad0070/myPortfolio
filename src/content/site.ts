@@ -63,6 +63,7 @@ export const site = {
 
   /* Selected work — shown on the home wheels. Add `image` for a real screenshot. */
   projects: [
+    { name: "Ideali", collab: "w/v4ideas", year: "2025", url: "https://ideali.io/", image: "/work/ideali.png", tint: "#3b5bdb", mono: "ID" },
     { name: "Muhafiz", collab: "fyp / fast nuces", year: "2024", url: GITHUB, tint: "#7a2e22", mono: "MU" },
     { name: "Whiplano", collab: "nft marketplace", year: "2024", url: GITHUB, tint: "#2b3b52", mono: "WP" },
     { name: "Islamify", collab: "scholar platform", year: "2025", url: GITHUB, tint: "#41583f", mono: "IS" },
