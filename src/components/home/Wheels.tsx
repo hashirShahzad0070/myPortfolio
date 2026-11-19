@@ -6,7 +6,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import gsap from "gsap";
 import { site } from "@/content/site";
 import { Row } from "../ui";
-import { drawCard, drawPlateFace, drawPlateRelief, roundMask, speckle, stockRGB } from "./plates";
+import { drawCard, drawLogoLayer, drawPlateFace, drawPlateRelief, loadLogo, roundMask, speckle, stockRGB } from "./plates";
 import { CARD_FRAG, CARD_VERT, RING_FRAG, RING_VERT } from "./wheelShaders";
 
 /* ==========================================================================
@@ -156,6 +156,7 @@ export function Wheels() {
           uSeed: { value: seedOf(i * 7) * 100 }, uReveal: { value: 0 },
           uTrail: { value: C.trail * 0.03 }, uWarp: { value: C.warp * 0.03 }, uPush: { value: C.push * 0.03 },
           uRestWarp: { value: C.restWarp * C.warp * 0.03 }, uTravelX: { value: 0 },
+          uVideo: { value: 0 }, uProg: { value: -1 }, uLeave: { value: -1 }, uLineA: { value: 0.5 }, uGrainV: { value: 0.012 },
         },
       });
       cardMats.push(mat);
@@ -267,6 +268,30 @@ export function Wheels() {
         face.needsUpdate = true;
       };
       retint(stockTone());
+      if (p.logo) {
+        loadLogo(p.logo).then(() => {
+          if (signal.aborted) return;
+          relief.image = drawPlateRelief(p, C.bevelPx);
+          relief.needsUpdate = true;
+          retint(stockTone());
+          // the logo itself: unlit and untoned, so it shows exactly as supplied
+          const art = drawLogoLayer(p);
+          if (art) {
+            const tex = new THREE.CanvasTexture(art);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = maxAniso;
+            const mat = new THREE.MeshBasicMaterial({
+              map: tex, transparent: true, toneMapped: false, depthWrite: false,
+              polygonOffset: true, polygonOffsetFactor: -3,
+            });
+            const logoMesh = new THREE.Mesh(faceGeo, mat);
+            logoMesh.position.z = 0.0065;
+            logoMesh.renderOrder = 3;
+            g.add(logoMesh);
+            disposables.push(tex, mat);
+          }
+        }, () => {});
+      }
       return {
         g, body, face, faceCanvas, faceTex, seed, retint,
         zS: { x: 0, v: 0 }, foc: { x: 0, v: 0 }, wob: { x: 0, v: 0 }, rock: { x: 0, v: 0 }, side: { x: 0, v: 0 }, spin: { x: 0, v: 0 },
@@ -524,14 +549,97 @@ export function Wheels() {
     const clearTarget = () => { Q = null; };
     const goTo = (i: number) => { let t = -i * B; t += Math.round((H - t) / period) * period; setTarget(t); };
     const openCheck = (i: number) => {
+      if (check.i >= 0 && check.i !== i) {
+        const prev = videos.get(check.i);
+        if (prev?.on) stopVideo(check.i, true);
+        else if (prev?.landing) restoreStill(check.i);
+        check.c = 0; checkV = 0;
+      }
       check.i = i; check.t = 1; pulse.v = 1;
       stage.classList.add("is-open");
+      playVideo(i);
     };
     const closeCheck = () => {
       if (!check.t) return;
       check.t = 0; pulse.v = 0.45;
       stage.classList.remove("is-open");
+      stopVideo(check.i);
     };
+
+    /* ---------- project videos: an opened card plays its video on the card itself ---------- */
+    type Vid = { el: HTMLVideoElement; tex: THREE.VideoTexture; still: THREE.Texture | null; stillA: number; on: boolean; ready: boolean; landing: boolean; lastT: number; lapAt: number };
+    const videos = new Map<number, Vid>();
+    const saveData = !!(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const videoFor = (i: number): Vid | null => {
+      const src = projects[i]?.video;
+      if (!src || matchMedia("(prefers-reduced-motion: reduce)").matches || saveData) return null;
+      const have = videos.get(i);
+      if (have) return have;
+      const el = document.createElement("video");
+      el.muted = true; el.loop = true; el.playsInline = true; el.preload = "none"; el.crossOrigin = "anonymous";
+      el.src = src;
+      const tex = new THREE.VideoTexture(el);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      // mipmapped + trilinear: a 1080p frame shrunk onto the card stays crisp instead of aliasing
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = maxAniso;
+      const v: Vid = { el, tex, still: null, stillA: 0, on: false, ready: false, landing: false, lastT: 0, lapAt: -1e9 };
+      el.addEventListener("loadeddata", () => { v.ready = true; }, { signal });
+      videos.set(i, v);
+      disposables.push({ dispose: () => { el.pause(); el.removeAttribute("src"); el.load(); tex.dispose(); } });
+      return v;
+    };
+    /** Warm a video up before it's opened: metadata when its card settles in front, the file on hover. */
+    const preloadVideo = (i: number, level: "metadata" | "auto") => {
+      const v = videoFor(i);
+      if (!v || v.ready) return;
+      const rank = { none: 0, metadata: 1, auto: 2 } as const;
+      if (rank[level] <= rank[(v.el.preload || "none") as keyof typeof rank]) return;
+      v.el.preload = level;
+      v.el.load();
+    };
+    const playVideo = (i: number) => {
+      const v = videoFor(i);
+      if (!v) return;
+      v.on = true; v.landing = false;
+      v.el.play().catch(() => {});
+    };
+    /** Put the card's still back (once the card has landed). */
+    const restoreStill = (i: number) => {
+      const v = videos.get(i);
+      if (!v) return;
+      v.landing = false;
+      const u = cardMats[i].uniforms;
+      if (u.uMap.value === v.tex && v.still) { u.uMap.value = v.still; u.uImgA.value = v.stillA; }
+      u.uVideo.value = 0; u.uProg.value = -1; u.uLeave.value = -1;
+      v.lastT = 0; v.lapAt = -1e9;
+      try { v.el.currentTime = 0; } catch { /* ignore */ }
+    };
+    const stopVideo = (i: number, now = false) => {
+      const v = videos.get(i);
+      if (!v || !v.on) return;
+      v.on = false;
+      v.el.pause();
+      if (now) restoreStill(i);
+      else v.landing = true;
+    };
+    /** Swap the playing video onto the card in place of its still. */
+    const swapIn = (i: number) => {
+      const v = videos.get(i);
+      if (!v || !v.on || !v.ready) return;
+      const u = cardMats[i].uniforms;
+      if (u.uMap.value === v.tex) return;
+      v.still = u.uMap.value; v.stillA = u.uImgA.value;
+      u.uMap.value = v.tex;
+      u.uImgA.value = v.el.videoWidth / Math.max(1, v.el.videoHeight);
+      u.uVideo.value = 1;
+    };
+    document.addEventListener("visibilitychange", () => {
+      videos.forEach((v) => { if (v.on) { if (document.hidden) v.el.pause(); else v.el.play().catch(() => {}); } });
+    }, { signal });
+    let preloaded = -1;
 
     const onActive = (e: number) => {
       if (e === announced) return;
@@ -646,7 +754,11 @@ export function Wheels() {
     }, { signal });
     stage.addEventListener("pointermove", (e) => {
       px = e.clientX; py = e.clientY;
-      if (dragX === null) return;
+      if (dragX === null) {
+        const h = hitAt(e.clientX, e.clientY);
+        if (h?.kind === "proof" && h.i === idxOf(V)) preloadVideo(h.i, "auto");
+        return;
+      }
       if (e.buttons === 0) { dragX = null; moved = false; return; }
       const t = dragY - e.clientY + (e.clientX - dragX);
       if (!moved && Math.hypot(e.clientX - downX, e.clientY - downY) > 8) moved = true;
@@ -825,6 +937,26 @@ export function Wheels() {
         checkV += (k * (check.t - check.c) - c * checkV) * n;
         check.c += checkV * n;
         if (Math.abs(check.t - check.c) < 5e-4 && Math.abs(checkV) < 5e-5) { check.c = check.t; checkV = 0; }
+      }
+      // the opened card's video: swap it in once the card is on its way, run the progress line
+      if (check.i >= 0) {
+        const v = videos.get(check.i);
+        if (v?.on) {
+          if (v.ready && check.c > 0.35) swapIn(check.i);
+          const u = cardMats[check.i].uniforms;
+          if (u.uMap.value === v.tex) {
+            const t = v.el.currentTime;
+            if (t + 0.05 < v.lastT) v.lapAt = performance.now(); // it looped
+            v.lastT = t;
+            u.uProg.value = v.el.duration > 0 ? t / v.el.duration : 0;
+            const r = (performance.now() - v.lapAt) / 700;
+            u.uLeave.value = r < 1 ? (r < 0.5 ? 2 ** (20 * r - 10) / 2 : (2 - 2 ** (-20 * r + 10)) / 2) : -1;
+          }
+        } else if (v?.landing && check.c < 0.02) restoreStill(check.i);
+      }
+      {
+        const front = idxOf(V);
+        if (front !== preloaded && Math.abs(H - V) < 0.02 && dragX === null) { preloaded = front; preloadVideo(front, "metadata"); }
       }
       const d = smooth(Math.max(0, Math.min(1, check.c)));
       const fd = Math.abs(d - prevD);
@@ -1155,6 +1287,7 @@ export function Wheels() {
         </div>
         <p className="u-sr-only" data-wheels-announce aria-live="polite" />
       </section>
+
 
       <div className="hv2__classic container" hidden={mode !== "classic"}>
         <h2 className="hv2__classic-head">Selected work</h2>

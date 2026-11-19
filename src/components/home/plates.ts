@@ -73,10 +73,44 @@ export const stockRGB = (tone: number, seed: number): [number, number, number] =
 
 const SIZE = 512;
 
-function markCanvas(p: Project, ink: string) {
+/* Project logos, loaded once. Until a logo is in, the plate shows the monogram. */
+const logos = new Map<string, Promise<HTMLImageElement>>();
+const loadedLogos = new Map<string, HTMLImageElement>();
+
+export function loadLogo(src: string) {
+  let pending = logos.get(src);
+  if (!pending) {
+    pending = new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => { loadedLogos.set(src, img); resolve(img); };
+      img.onerror = reject;
+      img.src = src;
+    });
+    logos.set(src, pending);
+  }
+  return pending;
+}
+
+/** The mark: the project's logo in its own colours (or as a flat silhouette
+    when `ink` is given), else the inked monogram. */
+function markCanvas(p: Project, ink: string, keepLogoColour = false) {
   const c = document.createElement("canvas");
   c.width = c.height = SIZE;
   const ctx = c.getContext("2d")!;
+  const logo = p.logo ? loadedLogos.get(p.logo) : undefined;
+  if (logo) {
+    const w = logo.naturalWidth || 1, h = logo.naturalHeight || 1;
+    // logos fill most of the plate: up to 86% of its width, 74% of its height
+    const s = Math.min((SIZE * 0.86) / w, (SIZE * 0.74) / h);
+    ctx.drawImage(logo, (SIZE - w * s) / 2, (SIZE - h * s) / 2, w * s, h * s);
+    if (!keepLogoColour) {
+      ctx.globalCompositeOperation = "source-in";
+      ctx.fillStyle = ink;
+      ctx.fillRect(0, 0, SIZE, SIZE);
+      ctx.globalCompositeOperation = "source-over";
+    }
+    return c;
+  }
   const mono = fontVar("--font-geist-mono", "monospace");
   ctx.fillStyle = ink;
   ctx.font = `600 ${SIZE * 0.34}px ${mono}`;
@@ -103,16 +137,29 @@ export function drawPlateFace(p: Project, tone: number, seed: number, out?: HTML
     }
     ctx.globalAlpha = 1;
   }
-  ctx.drawImage(markCanvas(p, tone < 0.5 ? "#e8e6e0" : "#1c1c1c"), 0, 0);
+  // a project logo is printed on its own unlit layer (drawLogoLayer) so its colours stay true
+  if (!(p.logo && loadedLogos.has(p.logo))) ctx.drawImage(markCanvas(p, tone < 0.5 ? "#e8e6e0" : "#1c1c1c", true), 0, 0);
   return c;
+}
+
+/** The project's logo in its original colours on a transparent sheet, laid out like the plate face. */
+export function drawLogoLayer(p: Project) {
+  if (!p.logo || !loadedLogos.has(p.logo)) return null;
+  return markCanvas(p, "#000", true);
 }
 
 /** Relief normal map: the mark blurred into a bevel, then Sobel → normals. */
 export function drawPlateRelief(p: Project, bevelPx = 3.5) {
-  const mask = markCanvas(p, "#fff");
   const c = document.createElement("canvas");
   c.width = c.height = SIZE;
   const ctx = c.getContext("2d", { willReadFrequently: true })!;
+  // a project logo is shown as supplied, not pressed: the plate stays flat under it
+  if (p.logo && loadedLogos.has(p.logo)) {
+    ctx.fillStyle = "rgb(128, 128, 255)";
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    return c;
+  }
+  const mask = markCanvas(p, "#fff");
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, SIZE, SIZE);
   ctx.filter = `blur(${bevelPx}px)`;

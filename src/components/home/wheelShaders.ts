@@ -115,6 +115,11 @@ export const CARD_FRAG = /* glsl */ `
   uniform float uDof;
   uniform float uSpoke;
   uniform float uLamp;
+  uniform float uVideo;  // 1 while uMap is the project's video (uploaded without sRGB decode)
+  uniform float uProg;   // video progress 0..1 along the bottom edge (-1 = no video)
+  uniform float uLeave;  // the previous lap's line sliding out to the right, 0..1 (-1 = none)
+  uniform float uLineA;  // the progress line's strength — a translucent white
+  uniform float uGrainV; // paper tooth over a playing video
   varying vec2 vUv;
   varying vec3 vN;
   varying vec3 vVp;
@@ -154,6 +159,8 @@ export const CARD_FRAG = /* glsl */ `
     col.r = texture2D(uMap, uv + dir * s, lod).r;
     col.g = texture2D(uMap, uv, lod).g;
     col.b = texture2D(uMap, uv - dir * s, lod).b;
+    // a video frame arrives display-encoded: decode it to linear like the stills
+    if (uVideo > 0.5) col = mix(pow(col * 0.9478672986 + vec3(0.0521327014), vec3(2.4)), col * 0.0773993808, vec3(lessThanEqual(col, vec3(0.04045))));
     // proof grid: ink lines that dissolve into the image as it is revealed
     vec2 cells = vec2(floor(cardA * 9.0 + 0.5), 9.0);
     vec2 gp = vUv * cells;
@@ -164,7 +171,11 @@ export const CARD_FRAG = /* glsl */ `
     float n = hash(vUv * 9.7 + uSeed * 3.1);
     float reveal = smoothstep(n - 0.12, n + 0.12, uReveal * 1.24 - 0.12);
     col = mix(m.rgb, col, reveal);
-    col += (hash(vUv * 617.0 + uSeed) - 0.5) * uGrain;
+    float g = hash(vUv * 617.0 + uSeed) - 0.5;
+    // stills take the tooth in linear; a video takes a lighter tooth in display space,
+    // so its dark frames don't break up into speckle
+    if (uVideo > 0.5) col = pow(max(pow(max(col, 0.0), vec3(1.0 / 2.2)) + g * uGrainV, 0.0), vec3(2.2));
+    else col += g * uGrain;
     // dim off-focus proofs; the lamp falls off around the wheel
     col *= mix(1.0 - uDim, 1.0, uFocus);
     float lit = cos(clamp(uSpoke, -3.14159, 3.14159)) * 0.5 + 0.5;
@@ -179,6 +190,22 @@ export const CARD_FRAG = /* glsl */ `
     float pool = pow(ndh, uSheenK) * 0.75 + pow(ndh, uSheenK * 4.0) * 0.35;
     float glaze = pow(1.0 - ndv, 4.0) * 0.5;
     col = mix(col, vec3(1.0), clamp((pool + glaze) * uSheen, 0.0, 1.0));
+    // the video's progress: a hairline on the bottom edge, growing left to right;
+    // when the clip loops, the full line slides out right as the new lap grows in
+    if (uProg >= 0.0) {
+      float hw = aa * 2.2;
+      float band = 1.0 - smoothstep(hw - aa, hw + aa, -dist);
+      float bottom = 1.0 - smoothstep(-uSize.y * 0.5 + uRadius, -uSize.y * 0.5 + uRadius + aa * 2.0, pos.y);
+      float ax = fwidth(pos.x);
+      float x0 = -uSize.x * 0.5 + uRadius, xe = uSize.x * 0.5 - uRadius;
+      float x1 = x0 + uProg * (xe - x0);
+      float pl = band * bottom * smoothstep(x0 - ax, x0 + ax, pos.x) * (1.0 - smoothstep(x1 - ax, x1 + ax, pos.x));
+      if (uLeave >= 0.0) {
+        float xt = x0 + uLeave * (xe - x0);
+        pl = max(pl, band * bottom * smoothstep(xt - ax, xt + ax, pos.x) * (1.0 - smoothstep(xe - ax, xe + ax, pos.x)));
+      }
+      col = mix(col, vec3(1.0), pl * uLineA);
+    }
     float a = shape * mix(m.a, 1.0, reveal);
     if (a < 0.01) discard;
     gl_FragColor = vec4(col, a);

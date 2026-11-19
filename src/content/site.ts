@@ -10,6 +10,8 @@ export type Project = {
   image?: string; // optional: "/work/muhafiz.jpg" (put files in /public/work)
   tint: string; // proof colour when there is no image
   mono?: string; // 2-letter monogram pressed into the die plate (defaults to initials)
+  logo?: string; // optional: "/favicon.svg" — pressed into the die plate instead of the monogram
+  video?: string; // optional: "/work/voltaicVideo.mp4" — plays on the card when it is opened
 };
 
 export type Update = {
@@ -63,7 +65,10 @@ export const site = {
 
   /* Selected work — shown on the home wheels. Add `image` for a real screenshot. */
   projects: [
-    { name: "Ideali", collab: "w/v4ideas", year: "2025", url: "https://ideali.io/", image: "/work/ideali.png", tint: "#3b5bdb", mono: "ID" },
+    { name: "Voltaic", collab: "web3 finance", year: "2025", url: GITHUB, image: "/work/voltaic.png", logo: "/work/voltaicLogo.png", video: "/work/voltaic-site.mp4", tint: "#5b1f6b", mono: "VF" },
+    { name: "Blorg", collab: "web3 meme coin", year: "2025", url: "https://blorgoneth.com/", image: "/work/blorg/blorg.JPG", logo: "/work/blorg/logo.png", video: "/work/blorg/blorg-site.mp4", tint: "#2f5d1f", mono: "BL" },
+    { name: "Ghostroom", collab: "web3 privacy", year: "2025", url: "https://lawngreen-cassowary-134016.hostingersite.com/", image: "/work/ghostroom/hero.JPG", logo: "/work/ghostroom/logo.png", video: "/work/ghostroom/ghostroom-site.mp4", tint: "#0d3b4a", mono: "GR" },
+    { name: "Ideali", collab: "w/v4ideas", year: "2025", url: "https://ideali.io/", image: "/work/ideali.png", logo: "/favicon.svg", tint: "#3b5bdb", mono: "ID" },
     { name: "Muhafiz", collab: "fyp / fast nuces", year: "2024", url: GITHUB, tint: "#7a2e22", mono: "MU" },
     { name: "Whiplano", collab: "nft marketplace", year: "2024", url: GITHUB, tint: "#2b3b52", mono: "WP" },
     { name: "Islamify", collab: "scholar platform", year: "2025", url: GITHUB, tint: "#41583f", mono: "IS" },
