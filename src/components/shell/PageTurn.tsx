@@ -1,14 +1,13 @@
 "use client";
 
-/* The page turn between routes: a sheet of the site's paper sweeps up over the page with a torn,
-   living top edge (the old page sinks back and dims), the route changes underneath, then the sheet
-   carries on up — its torn bottom edge tearing away — to reveal the new page. Ported from the
+/* The page turn between routes: the site's paper is up at once, a loader counts while the new route
+   loads underneath, then the sheet sweeps up — its torn bottom edge tearing away — to reveal the new
+   page. Ported from the
    reference site's veil. Internal link clicks are intercepted; code can call `pageTurn(href)`. */
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
 
-const COVER = 1.3; // s, sheet rises over the old page
 const REVEAL = 1.1; // s, sheet clears off the new page
 const SWEEP = "expo.inOut";
 // The loader between cover and reveal: a counter that hops through these values, odometer-style,
@@ -268,8 +267,6 @@ export function PageTurn() {
     let routeChanged = false;
     let tl: gsap.core.Timeline | null = null;
     let watchdog = 0;
-    let scrim: HTMLDivElement | null = null;
-    let sunk: HTMLElement | null = null;
 
     /* ---------- the loader ---------- */
     let holdTl: gsap.core.Timeline | null = null;
@@ -320,8 +317,6 @@ export function PageTurn() {
       state = "revealing";
       clearTimeout(watchdog);
       tl?.kill();
-      if (sunk) gsap.set(sunk, { clearProps: "transform,transformOrigin" });
-      sunk = null;
       html.removeAttribute("data-veil");
       document.dispatchEvent(new CustomEvent("veil:reveal", { detail: { mode: "nav", wipeDur: REVEAL } }));
       const done = () => {
@@ -329,11 +324,8 @@ export function PageTurn() {
         travel.style.visibility = "hidden";
         panel.style.visibility = "hidden";
         panel.style.pointerEvents = "none";
-        scrim?.remove();
-        scrim = null;
       };
       tl = gsap.timeline({ onComplete: done });
-      if (scrim) tl.to(scrim, { opacity: 0, duration: 0.25, ease: "power2.out" }, 0);
       if (reduced()) { tl.to(panel, { opacity: 0, duration: 0.2, ease: "power1.out" }, 0); return; }
       clip.top = 0; clip.bot = 0;
       tl.to(clip, { bot: 100, duration: REVEAL, ease: SWEEP, onUpdate: paint }, 0);
@@ -360,7 +352,6 @@ export function PageTurn() {
       const url = new URL(href, location.href);
       target = url.pathname + url.search + url.hash;
       routeChanged = false;
-      state = "covering";
       html.setAttribute("data-veil", ""); // the new page's intros wait for veil:reveal
       router.prefetch(target);
       panel.style.visibility = "visible";
@@ -370,33 +361,14 @@ export function PageTurn() {
       clearTimeout(watchdog);
       watchdog = window.setTimeout(() => { if (state === "covered" || state === "covering") { state = "covered"; reveal(); } }, 8000);
       tl?.kill();
-      const go = () => {
-        state = "covered";
-        if (!reduced()) startHold();
-        router.push(target!);
-        settle();
-      };
-      tl = gsap.timeline({ onComplete: go });
-      // the old page sinks back and darkens under the coming sheet
-      const main = document.querySelector<HTMLElement>("main");
-      scrim = document.createElement("div");
-      scrim.setAttribute("aria-hidden", "true");
-      scrim.style.cssText = "position:fixed;inset:0;z-index:1150;background:#000;opacity:0;pointer-events:none;";
-      document.body.append(scrim);
-      if (reduced()) {
-        clip.top = 0; clip.bot = 0; paint();
-        tl.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power1.out" });
-        return true;
-      }
-      if (main) {
-        sunk = main;
-        gsap.set(main, { transformOrigin: `50% ${scrollY + innerHeight / 2}px` });
-        tl.to(main, { scale: 0.96, y: 10, duration: COVER, ease: "power2.inOut" }, 0);
-      }
-      tl.to(scrim, { opacity: 0.55, duration: COVER * 0.7, ease: "power2.inOut" }, 0);
-      clip.top = 100; clip.bot = 0;
+      // no cover sweep: the paper is simply there, the loader counts while the page loads,
+      // then the sheet tears away to reveal the new page
+      clip.top = 0; clip.bot = 0;
       paint();
-      tl.to(clip, { top: 0, duration: COVER, ease: SWEEP, onUpdate: paint }, 0);
+      state = "covered";
+      if (!reduced()) startHold();
+      router.push(target!);
+      settle();
       return true;
     };
 
@@ -438,8 +410,6 @@ export function PageTurn() {
       clearTimeout(watchdog);
       tl?.kill();
       holdTl?.kill();
-      scrim?.remove();
-      if (sunk) gsap.set(sunk, { clearProps: "transform,transformOrigin" });
       sheet?.dispose();
     };
   }, [router]);
