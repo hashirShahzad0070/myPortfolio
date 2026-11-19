@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { pageTurn } from "./PageTurn";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { nav, site } from "@/content/site";
 import { ArrowUpRight, Circle, Monitor, Moon, Page, Search, Sun } from "../Icons";
@@ -18,12 +19,11 @@ export function CommandMenu() {
   const listRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo<Item[]>(() => {
-    const go = (href: string) => () => { router.push(href); close(); };
+    const go = (href: string) => () => { close(); if (!pageTurn(href)) router.push(href); };
     const themeItem = (t: ThemePref, label: string, icon: React.ReactNode): Item => ({
       group: "Theme", label, icon, hint: theme === t ? "Active" : undefined, run: () => { setTheme(t); close(); },
     });
     return [
-      { group: "Pages", label: "Home", hint: "/", icon: <Page />, run: go("/") },
       ...nav.map((n) => ({ group: "Pages", label: n.label, hint: n.href, icon: <Page />, run: go(n.href) })),
       ...site.projects.map((p) => ({
         group: "Work", label: p.name, hint: p.year, icon: <ArrowUpRight />,

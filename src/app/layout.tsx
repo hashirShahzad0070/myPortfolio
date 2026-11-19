@@ -6,6 +6,7 @@ import { Header } from "@/components/shell/Header";
 import { CommandMenu } from "@/components/shell/CommandMenu";
 import { Notifications } from "@/components/shell/Notifications";
 import { Drawer, RouteWatcher, Scrim, SmoothScroll, Veil } from "@/components/shell/Chrome";
+import { PageTurn } from "@/components/shell/PageTurn";
 import { PaperGround } from "@/components/shell/PaperGround";
 import "./globals.css";
 import "./pages.css";
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Drawer />
           <RouteWatcher />
           <Veil />
+          <PageTurn />
         </UiProvider>
       </body>
     </html>

@@ -98,7 +98,6 @@ export function Drawer() {
       <div className="drawer__sheet">
         <span className="drawer__handle" />
         <nav className="drawer__nav">
-          <Link className="drawer__link" href="/" onClick={close}>Home</Link>
           {nav.map((n) => (
             <Link key={n.href} className="drawer__link" href={n.href} onClick={close}>{n.label}</Link>
           ))}

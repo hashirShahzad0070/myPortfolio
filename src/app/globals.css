@@ -417,3 +417,14 @@ button.hud__chip { cursor: pointer; }
 .footer__link { text-decoration: none; }
 .footer__meta { display: flex; gap: var(--s-8); flex-wrap: wrap; }
 .footer__meta .hud__chip { border-radius: var(--r-xs); background: var(--fill); }
+
+/* page turn between routes (components/shell/PageTurn.tsx) */
+.pageturn { position: fixed; inset: 0; z-index: 1200; visibility: hidden; pointer-events: none; background: var(--paper); background-image: var(--grain-fiber); clip-path: inset(100% 0% 0% 0%); }
+.pageturn--gl { background: none; }
+.pageturn__paper { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+.pageturn--gl .pageturn__paper { display: block; }
+.pageturn__travel { position: absolute; inset-block-end: var(--s-24); inset-inline-end: var(--s-24); z-index: 1; visibility: hidden; color: var(--ink); will-change: transform; }
+.pageturn__count { user-select: none; font-family: var(--font-sans); font-variant-numeric: tabular-nums; font-weight: var(--fw-medium); font-size: var(--fs-display); letter-spacing: var(--track-display); line-height: 1; display: flex; }
+.pageturn__digit { inline-size: calc(3ch + 3 * var(--track-display)); block-size: 1em; display: block; overflow: hidden; contain: layout paint; }
+.pageturn__strip { display: block; will-change: transform; }
+.pageturn__cell { display: block; block-size: 1em; line-height: 1; text-align: end; white-space: nowrap; }

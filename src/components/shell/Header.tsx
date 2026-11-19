@@ -11,6 +11,9 @@ import { Hud } from "./Hud";
 import { useUi } from "./UiContext";
 import { useUnread } from "./Notifications";
 
+/** "/" is only current on the home page itself; other links also match their sub-pages. */
+const isCurrent = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
 function NavPill() {
   const pathname = usePathname();
   const listRef = useRef<HTMLUListElement>(null);
@@ -66,7 +69,7 @@ function NavPill() {
       <ul className="navpill__list" ref={listRef}>
         {nav.map((n) => (
           <li key={n.href}>
-            <Link className="navpill__link text-nav" href={n.href} aria-current={pathname.startsWith(n.href) ? "page" : undefined}>
+            <Link className="navpill__link text-nav" href={n.href} aria-current={isCurrent(pathname, n.href) ? "page" : undefined}>
               <Roll text={n.label} />
             </Link>
           </li>
@@ -150,7 +153,8 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const crumb = nav.find((n) => pathname.startsWith(n.href))?.label;
+  // on the home page the capsule keeps your initial instead of reading "Home"
+  const crumb = nav.find((n) => n.href !== "/" && isCurrent(pathname, n.href))?.label;
 
   return (
     <header className={`header${hidden && !panel ? " is-hidden" : ""}`}>
