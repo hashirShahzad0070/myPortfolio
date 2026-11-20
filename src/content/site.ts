@@ -67,18 +67,11 @@ export const site = {
   projects: [
     { name: "Voltaic", collab: "web3 finance", year: "2025", url: GITHUB, image: "/work/voltaic.png", logo: "/work/voltaicLogo.png", video: "/work/voltaic-site.mp4", tint: "#5b1f6b", mono: "VF" },
     { name: "Blorg", collab: "web3 meme coin", year: "2025", url: "https://blorgoneth.com/", image: "/work/blorg/blorg.JPG", logo: "/work/blorg/logo.png", video: "/work/blorg/blorg-site.mp4", tint: "#2f5d1f", mono: "BL" },
+    { name: "Intersites", collab: "digital agency", year: "2025", url: "https://intersites.co/", image: "/work/intersites/hero.png", logo: "/work/intersites/logo.png", video: "/work/intersites/intersites-site.mp4", tint: "#1c5fa8", mono: "IN" },
     { name: "Ghostroom", collab: "web3 privacy", year: "2025", url: "https://lawngreen-cassowary-134016.hostingersite.com/", image: "/work/ghostroom/hero.JPG", logo: "/work/ghostroom/logo.png", video: "/work/ghostroom/ghostroom-site.mp4", tint: "#0d3b4a", mono: "GR" },
     { name: "ZenMixer", collab: "web3 privacy", year: "2025", url: GITHUB, image: "/work/zenmixer/hero.JPG", logo: "/work/zenmixer/logo.png", video: "/work/zenmixer/zenmixer-site.mp4", tint: "#0f3b33", mono: "ZM" },
     { name: "MacroStrategy", collab: "web3 blockchain", year: "2025", url: GITHUB, image: "/work/macroStrategy/hero.JPG", logo: "/work/macroStrategy/logo2.png", video: "/work/macroStrategy/macrostrategy-site.mp4", tint: "#7a1a1f", mono: "MS" },
     { name: "Ideali", collab: "w/v4ideas", year: "2025", url: "https://ideali.io/", image: "/work/ideali.png", logo: "/favicon.svg", tint: "#3b5bdb", mono: "ID" },
-    { name: "Muhafiz", collab: "fyp / fast nuces", year: "2024", url: GITHUB, tint: "#7a2e22", mono: "MU" },
-    { name: "Whiplano", collab: "nft marketplace", year: "2024", url: GITHUB, tint: "#2b3b52", mono: "WP" },
-    { name: "Islamify", collab: "scholar platform", year: "2025", url: GITHUB, tint: "#41583f", mono: "IS" },
-    { name: "V4IDEAS", collab: "w/v4ideas", year: "2025", url: GITHUB, tint: "#c9b48a", mono: "V4" },
-    { name: "Web3 Token Sites", collab: "freelance", year: "2021–2025", url: GITHUB, tint: "#141414", mono: "W3" },
-    { name: "DApp Frontends", collab: "freelance", year: "2022–2025", url: GITHUB, tint: "#5c7a6b", mono: "DA" },
-    { name: "Mobile Apps", collab: "react native", year: "2025", url: GITHUB, tint: "#8f6d4a", mono: "RN" },
-    { name: "1LINK Automation", collab: "power platform", year: "2024", url: GITHUB, tint: "#33415c", mono: "1L" },
   ] as Project[],
 
   /* "What's new" feed (bell icon). Newest first. */
