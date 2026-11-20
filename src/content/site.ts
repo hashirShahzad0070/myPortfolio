@@ -69,7 +69,7 @@ export const site = {
     { name: "Blorg", collab: "web3 meme coin", year: "2025", url: "https://blorgoneth.com/", image: "/work/blorg/blorg.JPG", logo: "/work/blorg/logo.png", video: "/work/blorg/blorg-site.mp4", tint: "#2f5d1f", mono: "BL" },
     { name: "Ghostroom", collab: "web3 privacy", year: "2025", url: "https://lawngreen-cassowary-134016.hostingersite.com/", image: "/work/ghostroom/hero.JPG", logo: "/work/ghostroom/logo.png", video: "/work/ghostroom/ghostroom-site.mp4", tint: "#0d3b4a", mono: "GR" },
     { name: "ZenMixer", collab: "web3 privacy", year: "2025", url: GITHUB, image: "/work/zenmixer/hero.JPG", logo: "/work/zenmixer/logo.png", video: "/work/zenmixer/zenmixer-site.mp4", tint: "#0f3b33", mono: "ZM" },
-    { name: "MacroStrategy", collab: "web3 meme coin", year: "2025", url: GITHUB, image: "/work/macroStrategy/hero.JPG", logo: "/work/macroStrategy/logo.png", video: "/work/macroStrategy/macrostrategy-site.mp4", tint: "#7a1a1f", mono: "MS" },
+    { name: "MacroStrategy", collab: "web3 blockchain", year: "2025", url: GITHUB, image: "/work/macroStrategy/hero.JPG", logo: "/work/macroStrategy/logo.png", video: "/work/macroStrategy/macrostrategy-site.mp4", tint: "#7a1a1f", mono: "MS" },
     { name: "Ideali", collab: "w/v4ideas", year: "2025", url: "https://ideali.io/", image: "/work/ideali.png", logo: "/favicon.svg", tint: "#3b5bdb", mono: "ID" },
     { name: "Muhafiz", collab: "fyp / fast nuces", year: "2024", url: GITHUB, tint: "#7a2e22", mono: "MU" },
     { name: "Whiplano", collab: "nft marketplace", year: "2024", url: GITHUB, tint: "#2b3b52", mono: "WP" },
